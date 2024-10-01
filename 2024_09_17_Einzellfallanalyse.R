@@ -1,3 +1,4 @@
+# This code is to analyze some cases
 model_base <- "
 # Structural model
 Y ~ a*X1 + b*X2
