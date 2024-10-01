@@ -52,7 +52,7 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
   
   foreach(n = c(50, 75, 100, 200, 500), .combine = "rbind") %:%
   
-  foreach(sim_runs = 1:100, .combine = "rbind") %do% {
+  foreach(sim_runs = 1:100, .combine = "rbind") %dopar% {
   
     set.seed(50+jj+sim_runs+n)
     data_sim <- MASS::mvrnorm(n = n, 
