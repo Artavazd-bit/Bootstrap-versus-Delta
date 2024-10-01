@@ -5,12 +5,6 @@ library(lavaan)
 library(foreach)
 library(doParallel)
 
-
-library(dplyr)
-library(caret)
-library(rpart)
-library(rpart.plot)
-
 model_base <- "
 # Structural model
 Y ~ a*X1 + b*X2
@@ -58,9 +52,8 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
   
   foreach(n = c(50, 75, 100, 200, 500), .combine = "rbind") %:%
   
-  foreach(sim_runs = 1:10, .combine = "rbind") %do% {
+  foreach(sim_runs = 1:100, .combine = "rbind") %do% {
   
-    print(paste(jj, "von", nrow(sim_data), "und Anzahl Samplesize:", n, "Simulation run=", sim_runs, "von 10"))
     set.seed(50+jj+sim_runs+n)
     data_sim <- MASS::mvrnorm(n = n, 
                               mu= rep(0, nrow(sim_data$dgp[[jj]])), 
