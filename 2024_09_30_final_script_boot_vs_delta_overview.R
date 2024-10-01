@@ -205,7 +205,7 @@ o_table <- foreach(jj = 1: 2, .packages = c("cSEM", "MASS"), .combine = "rbind")
           cor_sim1[i,j] = cor_sim1[i,j] + dh
           cor_sim1[j,i] = cor_sim1[i,j]
           #print("point1")
-          data_after_dh <- MASS::mvrnorm(n = 100, mu = rep(0,9), Sigma = cor_sim1, empirical = F)
+          data_after_dh <- MASS::mvrnorm(n = 100, mu = rep(0,9), Sigma = cor_sim1, empirical = TRUE)
           
           
           out1 <- csem(.data = data_after_dh, 
