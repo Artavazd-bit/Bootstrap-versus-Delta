@@ -52,7 +52,7 @@ o_table <- foreach(jj = 1: 2, .packages = c("cSEM", "MASS"), .combine = "rbind")
   
   foreach(n = c(50, 75), .combine = "rbind") %:%
   
-  foreach(sim_runs = 1:3, .combine = "rbind") %do% {
+  foreach(sim_runs = 1:3, .combine = "rbind") %dopar% {
   
     print(paste(jj, "von", nrow(sim_data), "und Anzahl Samplesize:", n, "Simulation run=", sim_runs, "von 10"))
     set.seed(50+jj+sim_runs+n)
