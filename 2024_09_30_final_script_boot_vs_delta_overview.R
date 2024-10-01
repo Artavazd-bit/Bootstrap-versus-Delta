@@ -5,12 +5,6 @@ library(lavaan)
 library(foreach)
 library(doParallel)
 
-
-library(dplyr)
-library(caret)
-library(rpart)
-library(rpart.plot)
-
 model_base <- "
 # Structural model
 Y ~ a*X1 + b*X2
