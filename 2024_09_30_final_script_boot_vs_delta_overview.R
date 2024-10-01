@@ -54,11 +54,11 @@ sim_data <- generateData(model_base,
 cl <- parallel::makeCluster(8)
 doParallel::registerDoParallel(cl)
 
-o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combine = "rbind") %:%
+o_table <- foreach(jj = 1: 2, .packages = c("cSEM", "MASS"), .combine = "rbind") %:%
   
-  foreach(n = c(50, 75, 100, 200, 500), .combine = "rbind") %:%
+  foreach(n = c(50, 75), .combine = "rbind") %:%
   
-  foreach(sim_runs = 1:10, .combine = "rbind") %do% {
+  foreach(sim_runs = 1:3, .combine = "rbind") %do% {
   
     print(paste(jj, "von", nrow(sim_data), "und Anzahl Samplesize:", n, "Simulation run=", sim_runs, "von 10"))
     set.seed(50+jj+sim_runs+n)
@@ -211,7 +211,7 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
           cor_sim1[i,j] = cor_sim1[i,j] + dh
           cor_sim1[j,i] = cor_sim1[i,j]
           #print("point1")
-          data_after_dh <- MASS::mvrnorm(n = 100, mu = rep(0,9), Sigma = cor_sim1, empirical = TRUE)
+          data_after_dh <- MASS::mvrnorm(n = 100, mu = rep(0,9), Sigma = cor_sim1, empirical = F)
           
           
           out1 <- csem(.data = data_after_dh, 
