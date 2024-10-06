@@ -45,14 +45,14 @@ sim_data <- generateData(model_base,
                         e = c(0.5),
                         .return_type = "cor")
 
-cl <- parallel::makeCluster(4)
+cl <- parallel::makeCluster(8)
 doParallel::registerDoParallel(cl)
 
 o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combine = "rbind") %:%
   
   foreach(n = c(50, 75, 100, 200, 500), .combine = "rbind") %:%
   
-  foreach(sim_runs = 1:10, .combine = "rbind") %dopar% {
+  foreach(sim_runs = 1:100, .combine = "rbind") %dopar% {
   
     set.seed(50+jj+sim_runs+n)
     data_sim <- MASS::mvrnorm(n = n, 
@@ -66,7 +66,8 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
                 .resample_method = 'bootstrap',
                 .R = 500,   
                 .PLS_weight_scheme_inner = 'factorial',
-                .tolerance = 1e-06)
+                .tolerance = 1e-06
+                )
     
     infer_res <- infer(res, .alpha = 0.05, .quantity = "CI_percentile")
    # Delta-Methode 
@@ -201,6 +202,7 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
                        #  .resample_method = 'bootstrap',
                        .tolerance = 1e-06
           )
+          
           # in h-Methode: f(x+h)
           bt1 = out1$Estimates$Path_estimates[3,1:2]
           # f(x+h) - f(x) / h
@@ -255,5 +257,7 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
       "simulation_run" = jj, 
       "n" = n
     )
+    
+    
 } 
 closeAllConnections()
