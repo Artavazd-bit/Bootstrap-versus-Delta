@@ -38,19 +38,19 @@ set.seed(123)
 sim_data <- generateData(model_base, 
                         .N= 5000, 
                         .empirical = TRUE, 
-                        a = c(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6), 
+                        a = c(0), 
                         b = c(0.5),
-                        c = c(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6),
+                        c = c(0.6),
                         d = c(0.4),
                         e = c(0.5),
                         .return_type = "cor")
 
-cl <- parallel::makeCluster(8)
+cl <- parallel::makeCluster(4)
 doParallel::registerDoParallel(cl)
 
 o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combine = "rbind") %:%
   
-  foreach(n = c(50, 75, 100, 200, 500), .combine = "rbind") %:%
+  foreach(n = c(50, 500), .combine = "rbind") %:%
   
   foreach(sim_runs = 1:100, .combine = "rbind") %dopar% {
   
@@ -204,9 +204,7 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
           cor_sim1[i,j] = cor_sim1[i,j] + dh
           cor_sim1[j,i] = cor_sim1[i,j]
           #print("point1")
-          data_after_dh <- MASS::mvrnorm(n = 100, mu = rep(0,9), Sigma = cor_sim1, empirical = TRUE)
-          
-          
+          data_after_dh <- MASS::mvrnorm(n = 100, mu = rep(0,9), Sigma = cor_sim1, empirical = TRUE) 
           out1 <- csem(.data = data_after_dh, 
                        .model = model_est,
                        # To reproduce the Adanco results

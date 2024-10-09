@@ -27,41 +27,33 @@ X1 <~ x11 + x12 + x13
 X2 <~ x21 + x22 + x23
 Y <~ y1 + y2 + y3
 "
-iteration <- 2
+
 set.seed(123)
 sim_data_einzel <- generateData(model_base, 
                                 .N= 5000, 
                                 .empirical = TRUE, 
-                                a = 0.02, 
-                                b = c(0.5),
-                                c = 0.01,
-                                d = c(0.4),
-                                e = c(0.5),
-                                .return_type = "cor" )
-
-sim_data_einzel <- generateData(model_base, 
-                                .N= 5000, 
-                                .empirical = TRUE, 
-                                a = 0.5, 
+                                a = 0, 
                                 b = 0.5,
                                 c = 0.6,
                                 d = 0.4,
                                 e = 0.5,
                                 .return_type = "cor" )
 
-set.seed(50123141)
-n = 100
+n = 50
+set.seed(50 + 43 + 1 + 50)
 data_sim_einzelanalyse <- MASS::mvrnorm(n = n, 
-                          mu= rep(0, nrow(sim_data_einzel$dgp[[1]])), 
-                          Sigma =  sim_data_einzel$dgp[[1]],
-                          empirical = F)
-set.seed(50123141)
+                                        mu= rep(0, nrow(sim_data_einzel$dgp[[1]])), 
+                                        Sigma =  sim_data_einzel$dgp[[1]],
+                                        empirical = F
+                                        )
+
 res_einzelanalyse <- csem(.data = data_sim_einzelanalyse, 
                           .model = model_est,
                           .resample_method = 'bootstrap',
                           .R = 500,   
                           .PLS_weight_scheme_inner = 'factorial',
-                          .tolerance = 1e-06)
+                          .tolerance = 1e-06
+                          )
 
 infer_res <- infer(res_einzelanalyse, .alpha = 0.05, .quantity = "CI_percentile")
 infer_res$Path_estimates$CI_percentile["95%L", "Y ~ X1"]
