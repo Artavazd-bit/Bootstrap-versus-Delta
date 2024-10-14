@@ -45,7 +45,7 @@ sim_data <- generateData(model_base,
                         e = c(0.5),
                         .return_type = "cor")
 
-cl <- parallel::makeCluster(4)
+cl <- parallel::makeCluster(8)
 doParallel::registerDoParallel(cl)
 
 o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combine = "rbind") %:%
@@ -193,7 +193,9 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
           data_after_dh <- MASS::mvrnorm(n = 100, 
                                          mu = rep(0,9), 
                                          Sigma = cor_sim1, 
-                                         empirical = TRUE)
+                                         empirical = TRUE
+                                         )
+          
           out1 <- csem(.data = data_after_dh, 
                        .model = model_est,
                        # To reproduce the Adanco results
