@@ -45,13 +45,12 @@ sim_data <- generateData(model_base,
                         e = c(0.5),
                         .return_type = "cor")
 
-cl <- parallel::makeCluster(8)
+cl <- parallel::makeCluster(4)
 doParallel::registerDoParallel(cl)
 
 o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combine = "rbind") %:%
-  
+
   foreach(n = c(50, 100, 200, 500), .combine = "rbind") %:%
-  
   foreach(sim_runs = 1:100, .combine = "rbind") %dopar% {
   
     set.seed(50+jj+sim_runs+n)
@@ -191,20 +190,17 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
           cor_sim1 <- cor(data_sim)
           cor_sim1[i,j] = cor_sim1[i,j] + dh
           cor_sim1[j,i] = cor_sim1[i,j]
-
           data_after_dh <- MASS::mvrnorm(n = 100, 
                                          mu = rep(0,9), 
                                          Sigma = cor_sim1, 
                                          empirical = TRUE)
-          
-          
           out1 <- csem(.data = data_after_dh, 
                        .model = model_est,
                        # To reproduce the Adanco results
                        .PLS_weight_scheme_inner = 'factorial',
                        #  .resample_method = 'bootstrap',
                        .tolerance = 1e-06
-          )
+                        )
           
           # in h-Methode: f(x+h)
           bt1 = out1$Estimates$Path_estimates[3,1:2]
