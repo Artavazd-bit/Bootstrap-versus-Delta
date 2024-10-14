@@ -38,9 +38,9 @@ set.seed(123)
 sim_data <- generateData(model_base, 
                         .N= 5000, 
                         .empirical = TRUE, 
-                        a = c(0), 
+                        a = c(0, 0.1, 0.2, 0.3, 0.4, 0.5), 
                         b = c(0.5),
-                        c = c(0.6),
+                        c = c(0, 0.1, 0.2, 0.3, 0.4, 0.5),
                         d = c(0.4),
                         e = c(0.5),
                         .return_type = "cor")
@@ -49,23 +49,24 @@ cl <- parallel::makeCluster(4)
 doParallel::registerDoParallel(cl)
 
 o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combine = "rbind") %:%
-  
-  foreach(n = c(50, 500), .combine = "rbind") %:%
-  
+
+  foreach(n = c(50, 100, 200, 500), .combine = "rbind") %:%
   foreach(sim_runs = 1:100, .combine = "rbind") %dopar% {
   
     set.seed(50+jj+sim_runs+n)
     data_sim <- MASS::mvrnorm(n = n, 
                               mu= rep(0, nrow(sim_data$dgp[[jj]])), 
                               Sigma =  sim_data$dgp[[jj]],
-                              empirical = F)
+                              empirical = F
+                              )
     
     res <- csem(.data = data_sim, 
                 .model = model_est,
                 .resample_method = 'bootstrap',
                 .R = 500,   
                 .PLS_weight_scheme_inner = 'factorial',
-                .tolerance = 1e-06)
+                .tolerance = 1e-06
+                )
     
     infer_res <- infer(res, .alpha = 0.05, .quantity = "CI_percentile")
    # Delta-Methode 
@@ -81,7 +82,6 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
     
     
     ####################################################################################
-    ##
     ## Berechnung der Varianz-Covarianz-Matrix der Korrelationskoeffizienten gilt nur asymptotisch Dykstra(2013) S.11
     ## nach Dykstra(2013) Gleichung 27/28 und Isserlis(2019) Gleichung 21 + Anmerkungen von Flo
     ####################################################################################
@@ -90,19 +90,19 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
     cnter_y <- 1
     cnter_t <- 1
     for(x in 1:8){
-      #print(paste0("x:",x))
+
       bar_x <- mean(data_sim[,x])
       sigma_x <- sd(data_sim[,x])
       for(y in (x+1):9){
         bar_y <- mean(data_sim[,y])
         sigma_y <- sd(data_sim[,y])
-        #print(paste0("y:",y))
+
         for(z in 1:8){
-          #print(paste0("z:", z))
+
           bar_z <- mean(data_sim[,z])
           sigma_z <- sd(data_sim[,z])
           for(t in (z+1):9){
-            #print(paste0("t:", t))
+
             bar_t <- mean(data_sim[,t])
             sigma_t <- sd(data_sim[,t])
             
@@ -132,31 +132,24 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
               mu_yyzz_temp <- mu_yyzz_temp + (data_sim[i,y] - bar_y) * (data_sim[i,y] - bar_y) * (data_sim[i,z] - bar_z) * (data_sim[i,z] - bar_z)
             }
             mu_xyzt <- 1/nrow(data_sim) * mu_xyzt_temp
-            #print(mu_xyzt)
             
             mu_xxzt <- 1/nrow(data_sim) * mu_xxzt_temp
-            #print(mu_xxzt)
+
             mu_yyzt <- 1/nrow(data_sim) * mu_yyzt_temp
-            #print(mu_yyzt)
+
             mu_xyzz <- 1/nrow(data_sim) * mu_xyzz_temp
-            #print(mu_xyzz)
+
             mu_xytt <- 1/nrow(data_sim) * mu_xytt_temp
-            #print(mu_xytt)
+
             
             mu_xxtt <- 1/nrow(data_sim) * mu_xxtt_temp
-            #print(mu_xxtt)
             mu_xxzz <- 1/nrow(data_sim) * mu_xxzz_temp
-            #print(mu_xxzz)
             
             mu_yytt <- 1/nrow(data_sim) * mu_yytt_temp
-            #print(mu_yytt)
             mu_yyzz <- 1/nrow(data_sim) * mu_yyzz_temp
-            #print(mu_yyzz)
             
             vc_r[cnter_y, cnter_t]<- (mu_xyzt - 1/2*cor_data_sim[x,y]*(mu_xxzt + mu_yyzt) - 1/2*cor_data_sim[z,t]*(mu_xyzz + mu_xytt) 
                                       + 1/4*cor_data_sim[x,y]*cor_data_sim[z,t]*(mu_xxzz+mu_xxtt+mu_yyzz+mu_yytt))/nrow(data_sim)
-            #print(paste0("vcr:", vc_r[cnter_y, cnter_t]))
-            #print(paste0("counter of t:", cnter_t))
             cnter_t <- cnter_t + 1
           }
         }
@@ -188,12 +181,6 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
     Gbt_overview_delta_x2 <-data.frame(matrix(0, nrow = 36, ncol = 1))
     colnames(Gbt_overview_delta_x2) <- list_dh_all
     
-    
-    #Gwt_overview <- data.frame(matrix(0, nrow = 36, ncol = 1))
-    #colnames(Gwt_overview) <- list_dh_all
-    
-    #Glt_overview <- data.frame(matrix(0, nrow = 36, ncol = 1))
-    #colnames(Glt_overview) <- list_dh_all
     # Counter, sodass jeder Korrelationskoeffizient durchgegangen wird
     cnter = 1
     for(dh in list_dh_all){
@@ -203,37 +190,37 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
           cor_sim1 <- cor(data_sim)
           cor_sim1[i,j] = cor_sim1[i,j] + dh
           cor_sim1[j,i] = cor_sim1[i,j]
-          #print("point1")
-          data_after_dh <- MASS::mvrnorm(n = 100, mu = rep(0,9), Sigma = cor_sim1, empirical = TRUE) 
+          data_after_dh <- MASS::mvrnorm(n = 100, 
+                                         mu = rep(0,9), 
+                                         Sigma = cor_sim1, 
+                                         empirical = TRUE)
           out1 <- csem(.data = data_after_dh, 
                        .model = model_est,
                        # To reproduce the Adanco results
                        .PLS_weight_scheme_inner = 'factorial',
-                       #.PLS_weight_scheme_inner = 'factorial',
                        #  .resample_method = 'bootstrap',
                        .tolerance = 1e-06
-          )
-          #print("point2")
+                        )
+          
           # in h-Methode: f(x+h)
           bt1 = out1$Estimates$Path_estimates[3,1:2]
           # f(x+h) - f(x) / h
           dlta_bt = (bt1 - bt)/dh
           Gbt[,cnter] = dlta_bt[1]
           Gbt2[,cnter] = dlta_bt[2]
-          #print("point3")
+
           lt1 = c(out1$Estimates$Loading_estimates[1,1:3],
                   out1$Estimates$Loading_estimates[2,4:6],
                   out1$Estimates$Loading_estimates[3,7:9])
           dlta_lt = (lt1 - lt)/dh
           Glt[,cnter] = dlta_lt 
-          #print("point4")
+
           wt1 = c(out1$Estimates$Weight_estimates[1,1:3],
                   out1$Estimates$Weight_estimates[2,4:6],
                   out1$Estimates$Weight_estimates[3,7:9])
           dlta_wt = (wt1 - wt)/dh
           Gwt[,cnter] = dlta_wt
-          #print("point5")
-          #print(cnter)
+
           cnter = cnter + 1
         }
       }
@@ -251,7 +238,7 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
     Gbt_x2 <- t(as.matrix(Gbt_overview_delta_x2[,"1e-05"]))
     
  
-    c("a" = sim_data$a[jj],
+    csv_write <- c("a" = sim_data$a[jj],
       "c" = sim_data$c[jj], 
       "path_estimate_y_x1" = res$Estimates$Estimates_resample$Estimates1$Path_estimates$Original['Y ~ X1'], 
       "path_estimate_y_x2" = res$Estimates$Estimates_resample$Estimates1$Path_estimates$Original['Y ~ X2'],
@@ -267,7 +254,15 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
       "Z_test_delta_y_x2" = abs(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Original['Y ~ X2']/sqrt(diag( Gbt_x2 %*% vc_r %*% t(Gbt_x2) ))) < qnorm(0.975),
       "Sim_run" = sim_runs, 
       "simulation_run" = jj, 
-      "n" = n
+      "n" = n,
+      "c_estimate" = res$Estimates$Construct_VCV["X1", "X2"]
     )
+    
+    write.csv(x = csv_write, file = paste0("C:/Users/Jason/iCloudDrive/Geteilt/Data/file_", sim_data$a[jj], "_", sim_data$c[jj], "_", n, "_", sim_runs, "_", jj, ".csv"))
+    
+    csv_write
+    
 } 
 closeAllConnections()
+
+write.csv(x = o_table, file = "C:/Users/Jason/iCloudDrive/Geteilt/2024_10_13_overview_table.csv")
