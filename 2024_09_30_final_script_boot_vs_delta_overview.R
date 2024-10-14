@@ -38,21 +38,21 @@ set.seed(123)
 sim_data <- generateData(model_base, 
                         .N= 5000, 
                         .empirical = TRUE, 
-                        a = c(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6), 
+                        a = c(0, 0.1, 0.2, 0.3, 0.4, 0.5), 
                         b = c(0.5),
-                        c = c(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6),
+                        c = c(0, 0.1, 0.2, 0.3, 0.4, 0.5),
                         d = c(0.4),
                         e = c(0.5),
                         .return_type = "cor")
 
-cl <- parallel::makeCluster(4)
+cl <- parallel::makeCluster(8)
 doParallel::registerDoParallel(cl)
 
 o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combine = "rbind") %:%
   
-  foreach(n = c(50, 75, 100, 200, 500), .combine = "rbind") %:%
+  foreach(n = c(50, 100, 200, 500), .combine = "rbind") %:%
   
-  foreach(sim_runs = 1:10, .combine = "rbind") %dopar% {
+  foreach(sim_runs = 1:100, .combine = "rbind") %dopar% {
   
     set.seed(50+jj+sim_runs+n)
     data_sim <- MASS::mvrnorm(n = n, 
@@ -66,7 +66,8 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
                 .resample_method = 'bootstrap',
                 .R = 500,   
                 .PLS_weight_scheme_inner = 'factorial',
-                .tolerance = 1e-06)
+                .tolerance = 1e-06
+                )
     
     infer_res <- infer(res, .alpha = 0.05, .quantity = "CI_percentile")
    # Delta-Methode 
@@ -191,7 +192,10 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
           cor_sim1[i,j] = cor_sim1[i,j] + dh
           cor_sim1[j,i] = cor_sim1[i,j]
 
-          data_after_dh <- MASS::mvrnorm(n = 100, mu = rep(0,9), Sigma = cor_sim1, empirical = TRUE)
+          data_after_dh <- MASS::mvrnorm(n = 100, 
+                                         mu = rep(0,9), 
+                                         Sigma = cor_sim1, 
+                                         empirical = TRUE)
           
           
           out1 <- csem(.data = data_after_dh, 
@@ -201,6 +205,7 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
                        #  .resample_method = 'bootstrap',
                        .tolerance = 1e-06
           )
+          
           # in h-Methode: f(x+h)
           bt1 = out1$Estimates$Path_estimates[3,1:2]
           # f(x+h) - f(x) / h
@@ -237,7 +242,7 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
     Gbt_x2 <- t(as.matrix(Gbt_overview_delta_x2[,"1e-05"]))
     
  
-    c("a" = sim_data$a[jj],
+    csv_write <- c("a" = sim_data$a[jj],
       "c" = sim_data$c[jj], 
       "path_estimate_y_x1" = res$Estimates$Estimates_resample$Estimates1$Path_estimates$Original['Y ~ X1'], 
       "path_estimate_y_x2" = res$Estimates$Estimates_resample$Estimates1$Path_estimates$Original['Y ~ X2'],
@@ -253,7 +258,15 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
       "Z_test_delta_y_x2" = abs(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Original['Y ~ X2']/sqrt(diag( Gbt_x2 %*% vc_r %*% t(Gbt_x2) ))) < qnorm(0.975),
       "Sim_run" = sim_runs, 
       "simulation_run" = jj, 
-      "n" = n
+      "n" = n,
+      "c_estimate" = res$Estimates$Construct_VCV["X1", "X2"]
     )
+    
+    write.csv(x = csv_write, file = paste0("C:/Users/Jason/iCloudDrive/Geteilt/Data/file_", sim_data$a[jj], "_", sim_data$c[jj], "_", n, "_", sim_runs, "_", jj, ".csv"))
+    
+    csv_write
+    
 } 
 closeAllConnections()
+
+write.csv(x = o_table, file = "C:/Users/Jason/iCloudDrive/Geteilt/2024_10_13_overview_table.csv")
