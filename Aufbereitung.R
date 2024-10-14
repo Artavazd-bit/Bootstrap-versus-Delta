@@ -1,24 +1,41 @@
-sigma1 <- matrix(c(1, 0.3, 0.2, 0.3, 1, 0.4, 0.2, 0.4, 1), nrow = 3, ncol = 3)
-test_1 <- MASS::mvrnorm(n = 100, mu = rep(0,3), Sigma = sigma1, empirical = TRUE)
-cov(test_1)- sigma1
-
-
 library(dplyr)
+library(rpart)
+library(rpart.plot)
+overview_table <- read.csv("C:/Users/jab49wd/iCloudDrive/Geteilt/2024_10_14_overview_table.csv")
 
-o_table <- read.csv(file = "C:/Users/jab49wd/iCloudDrive/Geteilt/overview.csv")
+overview_table_2 <- as.data.frame(overview_table)
 
-o_table_df <- as.data.frame(o_table)
-
-o_table_df$Z_test_boot_y_x1.Y...X1 <- 1-o_table_df$Z_test_boot_y_x1.Y...X1
-o_table_df$Z_test_delta_y_x1.Y...X1 <- 1-o_table_df$Z_test_delta_y_x1.Y...X1
-
-o_table_df2 <- o_table_df %>% 
-                        group_by(a, c, n) %>%
-                        summarize(Rejection_rate_boot = mean(`Z_test_boot_y_x1.Y...X1`), 
-                                  Rejection_rate_delta = mean(`Z_test_delta_y_x1.Y...X1`))
-
-o_table_df2_a0 <- o_table_df2[o_table_df2$a == 0, ]
-
-o_table_df2
+overview_table_2$Z_test_boot_y_x1.Y...X1<- 1-overview_table_2$Z_test_boot_y_x1.Y...X1
+overview_table_2$Z_test_delta_y_x1.Y...X1 <- 1-overview_table_2$Z_test_delta_y_x1.Y...X1
 
 
+overview_table_3 <- overview_table_2 %>% 
+                                    group_by(a, c, n) %>%
+                                    summarize(Rejection_rate_boot = mean(`Z_test_boot_y_x1.Y...X1`), 
+                                              Rejection_rate_delta = mean(`Z_test_delta_y_x1.Y...X1`),
+                                              Rejection_rate_boot_sd = sd(Z_test_boot_y_x1.Y...X1),
+                                              Rejection_rate_delta_sd = sd(`Z_test_delta_y_x1.Y...X1`))
+
+
+overview_table_3$delta_besser <- 0
+overview_table_3$delta_besser[(overview_table_3$a !=0 & overview_table_3$Rejection_rate_boot< overview_table_3$Rejection_rate_delta) | (overview_table_3$a ==0 & overview_table_3$Rejection_rate_boot> overview_table_3$Rejection_rate_delta) ] <-1 
+
+overview_table_3$delta_besser <- as.factor(overview_table_3$delta_besser)
+
+overview_table_4 <- overview_table_3[overview_table_3$a ==0,]
+
+tree_model_rpart <- rpart::rpart(delta_besser ~ a + c + n, 
+                                 data = overview_table_3, 
+                                 method = "class" 
+)
+
+rpart.plot(tree_model_rpart)
+printcp(tree_model_rpart) 
+optimal_cp <- tree_model_rpart$cptable[which.min(tree_model_rpart$cptable[,"xerror"]),"CP"]
+pruned_tree <- prune(tree_model_rpart, cp = optimal_cp)
+rpart.plot(pruned_tree)
+text(pruned_tree, use.n = TRUE) 
+
+
+overview_table_3$Rejection_rate_boot_sd <- NULL
+overview_table_3$Rejection_rate_delta_sd <- NULL
