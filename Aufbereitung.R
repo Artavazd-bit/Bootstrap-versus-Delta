@@ -1,7 +1,7 @@
 library(dplyr)
 library(rpart)
 library(rpart.plot)
-overview_table <- read.csv("C:/Users/jab49wd/iCloudDrive/Geteilt/2024_10_14_overview_table.csv")
+overview_table <- read.csv("./Data/2024_10_14_overview_table.csv")
 
 overview_table_2 <- as.data.frame(overview_table)
 

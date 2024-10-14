@@ -260,11 +260,11 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
       "c_estimate" = res$Estimates$Construct_VCV["X1", "X2"]
     )
     
-    write.csv(x = csv_write, file = paste0("C:/Users/Jason/iCloudDrive/Geteilt/Data/file_", sim_data$a[jj], "_", sim_data$c[jj], "_", n, "_", sim_runs, "_", jj, ".csv"))
+    #write.csv(x = csv_write, file = paste0("./Data/file_", sim_data$a[jj], "_", sim_data$c[jj], "_", n, "_", sim_runs, "_", jj, ".csv"))
     
     csv_write
     
 } 
 closeAllConnections()
 
-write.csv(x = o_table, file = "C:/Users/Jason/iCloudDrive/Geteilt/2024_10_13_overview_table.csv")
+write.csv(x = o_table, file = "./Data/2024_10_13_overview_table.csv")
