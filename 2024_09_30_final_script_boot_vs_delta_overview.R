@@ -38,9 +38,9 @@ set.seed(123)
 sim_data <- generateData(model_base, 
                         .N= 5000, 
                         .empirical = TRUE, 
-                        a = c(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6), 
+                        a = c(0, 0.1, 0.2, 0.3, 0.4, 0.5), 
                         b = c(0.5),
-                        c = c(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6),
+                        c = c(0, 0.1, 0.2, 0.3, 0.4, 0.5),
                         d = c(0.4),
                         e = c(0.5),
                         .return_type = "cor")
@@ -192,7 +192,10 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
           cor_sim1[i,j] = cor_sim1[i,j] + dh
           cor_sim1[j,i] = cor_sim1[i,j]
 
-          data_after_dh <- MASS::mvrnorm(n = 100, mu = rep(0,9), Sigma = cor_sim1, empirical = TRUE)
+          data_after_dh <- MASS::mvrnorm(n = 100, 
+                                         mu = rep(0,9), 
+                                         Sigma = cor_sim1, 
+                                         empirical = TRUE)
           
           
           out1 <- csem(.data = data_after_dh, 
@@ -255,31 +258,15 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
       "Z_test_delta_y_x2" = abs(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Original['Y ~ X2']/sqrt(diag( Gbt_x2 %*% vc_r %*% t(Gbt_x2) ))) < qnorm(0.975),
       "Sim_run" = sim_runs, 
       "simulation_run" = jj, 
-      "n" = n
+      "n" = n,
+      "c_estimate" = res$Estimates$Construct_VCV["X1", "X2"]
     )
     
-    write.csv(x = csv_write, file = paste0("./Data/file_", sim_data$a[jj], "_", sim_data$c[jj], "_", n, "_", sim_runs, "_", jj, ".csv"))
+    write.csv(x = csv_write, file = paste0("C:/Users/Jason/iCloudDrive/Geteilt/Data/file_", sim_data$a[jj], "_", sim_data$c[jj], "_", n, "_", sim_runs, "_", jj, ".csv"))
     
+    csv_write
     
-    c("a" = sim_data$a[jj],
-      "c" = sim_data$c[jj], 
-      "path_estimate_y_x1" = res$Estimates$Estimates_resample$Estimates1$Path_estimates$Original['Y ~ X1'], 
-      "path_estimate_y_x2" = res$Estimates$Estimates_resample$Estimates1$Path_estimates$Original['Y ~ X2'],
-      "sd_bootstrap_y_x1" = sd(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Resampled[,'Y ~ X1']), 
-      "Z_test_boot_y_x1" = abs(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Original['Y ~ X1']/ sd(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Resampled[,'Y ~ X1'])) < qnorm(0.975),
-      "Z_test_boot_y_x2" = abs(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Original['Y ~ X2']/ sd(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Resampled[,'Y ~ X2'])) < qnorm(0.975),
-      "perc_ci_lb_boot_y_x1" = infer_res$Path_estimates$CI_percentile["95%L", "Y ~ X1"], 
-      "perc_ci_ub_boot_y_x1" = infer_res$Path_estimates$CI_percentile["95%U", "Y ~ X1"], 
-      "perc_ci_sgn_same_y_x1" = sign(infer_res$Path_estimates$CI_percentile["95%L", "Y ~ X1"]) == sign(infer_res$Path_estimates$CI_percentile["95%U", "Y ~ X1"]), 
-      "sd_delta_y_x1" =  sqrt(diag( Gbt_x1 %*% vc_r %*% t(Gbt_x1) )), 
-      "Z_test_delta_y_x1" = abs(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Original['Y ~ X1']/sqrt(diag( Gbt_x1 %*% vc_r %*% t(Gbt_x1) ))) < qnorm(0.975), 
-      "sd_delta_y_x2" = sqrt(diag( Gbt_x2 %*% vc_r %*% t(Gbt_x2) )), 
-      "Z_test_delta_y_x2" = abs(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Original['Y ~ X2']/sqrt(diag( Gbt_x2 %*% vc_r %*% t(Gbt_x2) ))) < qnorm(0.975),
-      "Sim_run" = sim_runs, 
-      "simulation_run" = jj, 
-      "n" = n
-    )
 } 
 closeAllConnections()
 
-write.csv(x = o_table, file = "C:/Users/Jason/iCloudDrive/Geteilt/overview.csv")
+write.csv(x = o_table, file = "C:/Users/Jason/iCloudDrive/Geteilt/2024_10_13_overview_table.csv")
