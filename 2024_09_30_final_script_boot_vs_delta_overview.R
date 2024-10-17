@@ -90,22 +90,18 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
     cnter_y <- 1
     cnter_t <- 1
     for(x in 1:8){
-
       bar_x <- mean(data_sim[,x])
       sigma_x <- sd(data_sim[,x])
       for(y in (x+1):9){
         bar_y <- mean(data_sim[,y])
         sigma_y <- sd(data_sim[,y])
-
         for(z in 1:8){
-
           bar_z <- mean(data_sim[,z])
           sigma_z <- sd(data_sim[,z])
           for(t in (z+1):9){
-
             bar_t <- mean(data_sim[,t])
             sigma_t <- sd(data_sim[,t])
-            
+           
             mu_xyzt_temp <- 0
             mu_xxzt_temp <- 0 
             mu_yyzt_temp <- 0
@@ -117,6 +113,7 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
             
             mu_yytt_temp <- 0
             mu_yyzz_temp <- 0
+            
             for(i in 1:nrow(data_sim)){
               mu_xyzt_temp <- mu_xyzt_temp + (data_sim[i,x] - bar_x) * (data_sim[i,y] - bar_y) * (data_sim[i,z] - bar_z) * (data_sim[i,t] - bar_t)
               
@@ -131,6 +128,7 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
               mu_yytt_temp <- mu_yytt_temp + (data_sim[i,y] - bar_y) * (data_sim[i,y] - bar_y) * (data_sim[i,t] - bar_t) * (data_sim[i,t] - bar_t)
               mu_yyzz_temp <- mu_yyzz_temp + (data_sim[i,y] - bar_y) * (data_sim[i,y] - bar_y) * (data_sim[i,z] - bar_z) * (data_sim[i,z] - bar_z)
             }
+            
             mu_xyzt <- 1/nrow(data_sim) * mu_xyzt_temp
             
             mu_xxzt <- 1/nrow(data_sim) * mu_xxzt_temp
@@ -236,10 +234,10 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
       #Glt_overview[, paste0(dh)]  <- Glt[1,]
       #Glt = matrix(0 , nrow = 9 , ncol = 36)
     }
+    
     Gbt_x1 <- t(as.matrix(Gbt_overview_delta_x1[,"1e-05"]))
     Gbt_x2 <- t(as.matrix(Gbt_overview_delta_x2[,"1e-05"]))
     
- 
     csv_write <- c("a" = sim_data$a[jj],
       "c" = sim_data$c[jj], 
       "path_estimate_y_x1" = res$Estimates$Estimates_resample$Estimates1$Path_estimates$Original['Y ~ X1'], 
@@ -250,7 +248,7 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
       "perc_ci_lb_boot_y_x1" = infer_res$Path_estimates$CI_percentile["95%L", "Y ~ X1"], 
       "perc_ci_ub_boot_y_x1" = infer_res$Path_estimates$CI_percentile["95%U", "Y ~ X1"], 
       "perc_ci_sgn_same_y_x1" = sign(infer_res$Path_estimates$CI_percentile["95%L", "Y ~ X1"]) == sign(infer_res$Path_estimates$CI_percentile["95%U", "Y ~ X1"]), 
-      "sd_delta_y_x1" =  sqrt(diag( Gbt_x1 %*% vc_r %*% t(Gbt_x1) )), 
+      "sd_delta_y_x1" =  sqrt(diag( Gbt_x1 %*% vc_r %*% t(Gbt_x1))), 
       "Z_test_delta_y_x1" = abs(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Original['Y ~ X1']/sqrt(diag( Gbt_x1 %*% vc_r %*% t(Gbt_x1) ))) < qnorm(0.975), 
       "sd_delta_y_x2" = sqrt(diag( Gbt_x2 %*% vc_r %*% t(Gbt_x2) )), 
       "Z_test_delta_y_x2" = abs(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Original['Y ~ X2']/sqrt(diag( Gbt_x2 %*% vc_r %*% t(Gbt_x2) ))) < qnorm(0.975),
