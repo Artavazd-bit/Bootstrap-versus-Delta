@@ -26,7 +26,7 @@ overview_table_4 <- overview_table_3[overview_table_3$a ==0,]
 tree_model_rpart <- rpart::rpart(delta_besser ~ a + c + n, 
                                  data = overview_table_3, 
                                  method = "class" 
-)
+                                )
 
 rpart.plot(tree_model_rpart)
 printcp(tree_model_rpart) 
