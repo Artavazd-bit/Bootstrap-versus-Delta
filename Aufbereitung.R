@@ -9,12 +9,26 @@ overview_table_2 <- as.data.frame(overview_table)
 overview_table_2$Z_test_boot_y_x1.Y...X1<- 1-overview_table_2$Z_test_boot_y_x1.Y...X1
 overview_table_2$Z_test_delta_y_x1.Y...X1 <- 1-overview_table_2$Z_test_delta_y_x1.Y...X1
 
+overview_table_2_high_values <- overview_table_2[overview_table_2$a >= 0.3, ]
+overview_table_2_high_values$X <- NULL
+overview_table_2_high_values$Z_test_boot_y_x2.Y...X2 <- NULL
+overview_table_2_high_values$path_estimate_y_x2.Y...X2 <- NULL
+overview_table_2_high_values$perc_ci_lb_boot_y_x1 <- NULL
+overview_table_2_high_values$perc_ci_ub_boot_y_x1 <- NULL
+overview_table_2_high_values$perc_ci_sgn_same_y_x1 <- NULL
+overview_table_2_high_values$sd_delta_y_x2 <- NULL
+View(overview_table_2_high_values)
+
+##################################NULL########NULL##################################NULL###############NNULL##################################NULL###############NULL##################################NULL##################NUNULL##################################NULL##################NULL##################################NULL###############################################################################
 overview_table_3 <- overview_table_2 %>% 
                                     group_by(a, c, n) %>%
                                     summarize(Rejection_rate_boot = mean(`Z_test_boot_y_x1.Y...X1`), 
                                               Rejection_rate_delta = mean(`Z_test_delta_y_x1.Y...X1`),
                                               Rejection_rate_boot_sd = sd(Z_test_boot_y_x1.Y...X1),
                                               Rejection_rate_delta_sd = sd(`Z_test_delta_y_x1.Y...X1`))
+###############################################################################
+
+
 
 overview_table_3$delta_besser <- 0
 overview_table_3$delta_besser[(overview_table_3$a !=0 & overview_table_3$Rejection_rate_boot< overview_table_3$Rejection_rate_delta) | (overview_table_3$a ==0 & overview_table_3$Rejection_rate_boot> overview_table_3$Rejection_rate_delta) ] <-1 
