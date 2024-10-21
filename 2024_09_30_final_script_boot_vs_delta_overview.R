@@ -238,6 +238,10 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
     Gbt_x1 <- t(as.matrix(Gbt_overview_delta_x1[,"1e-05"]))
     Gbt_x2 <- t(as.matrix(Gbt_overview_delta_x2[,"1e-05"]))
     
+    
+    dip <- diptest::dip.test(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Resampled[,'Y ~ X1'])
+   
+    
     csv_write <- c("a" = sim_data$a[jj],
       "c" = sim_data$c[jj], 
       "path_estimate_y_x1" = res$Estimates$Estimates_resample$Estimates1$Path_estimates$Original['Y ~ X1'], 
@@ -255,7 +259,8 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
       "Sim_run" = sim_runs, 
       "simulation_run" = jj, 
       "n" = n,
-      "c_estimate" = res$Estimates$Construct_VCV["X1", "X2"]
+      "c_estimate" = res$Estimates$Construct_VCV["X1", "X2"],
+      "dip_test_p_value" = dip$p.value
     )
     
     #write.csv(x = csv_write, file = paste0("./Data/file_", sim_data$a[jj], "_", sim_data$c[jj], "_", n, "_", sim_runs, "_", jj, ".csv"))

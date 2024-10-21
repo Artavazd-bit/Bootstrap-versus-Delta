@@ -1,4 +1,12 @@
 # This code is to analyze some cases
+library(MASS)
+library(cSEM)
+library(cSEM.DGP)
+library(lavaan)
+library(foreach)
+library(doParallel)
+library(diptest)
+
 model_base <- "
 # Structural model
 Y ~ a*X1 + b*X2
@@ -34,7 +42,7 @@ sim_data_einzel <- generateData(model_base,
                                 .empirical = TRUE, 
                                 a = 0, 
                                 b = 0.5,
-                                c = 0.6,
+                                c = 0.1,
                                 d = 0.4,
                                 e = 0.5,
                                 .return_type = "cor" )
@@ -59,6 +67,8 @@ infer_res <- infer(res_einzelanalyse, .alpha = 0.05, .quantity = "CI_percentile"
 infer_res$Path_estimates$CI_percentile["95%L", "Y ~ X1"]
 
 plot(density(res_einzelanalyse$Estimates$Estimates_resample$Estimates1$Path_estimates$Resampled[,'Y ~ X1']), main = "Empirical distribution of parameter estimates")
+dip <- diptest::dip.test(res_einzelanalyse$Estimates$Estimates_resample$Estimates1$Path_estimates$Resampled[,'Y ~ X1'])
+
 
 wt1 = c(res_einzelanalyse$Estimates$Weight_estimates[1,1:3],
         res_einzelanalyse$Estimates$Weight_estimates[2,4:6],
