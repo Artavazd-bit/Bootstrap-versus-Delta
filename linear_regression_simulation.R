@@ -5,22 +5,16 @@ library(lavaan)
 library(foreach)
 library(doParallel)
 
+
 model_base <- "
 # Structural model
 Y ~ a*X1 + b*X2
-X1 ~~ c*X2
 # Measurement model
 # Ladungen zwischen -1 und 1 
 # Werte zwischen 0.6 und 0.9
-X1 <~ 0.6*x11 + 0.81*x12 + 0.778*x13
-x11 ~~ 0.3*x12 + 0.4*x13
-x12 ~~d*x13
-X2 <~ 0.8*x21 + 0.9*x22 + 0.3*x23
-x21 ~~ 0.5*x22 + 0.3*x23
-x22 ~~e*x23
-Y <~ 0.9*y1 + 0.6*y2 + 0.4*y3
-y1 ~~ 0.2*y2 + 0.3*y3
-y2 ~~ 0.1*y3
+X1 <~ 1*x11 
+X2 <~ 1*x21
+Y <~ 1*y1 
 "
 
 model_est <- "
@@ -29,9 +23,9 @@ Y ~ X1 + X2
 # Measurement model
 # Ladungen zwischen -1 und 1 
 # Werte zwischen 0.6 und 0.9
-X1 <~ x11 + x12 + x13
-X2 <~ x21 + x22 + x23
-Y <~ y1 + y2 + y3
+X1 <~ x11 
+X2 <~ x21
+Y <~ y1
 "
 
 set.seed(123)
@@ -40,9 +34,6 @@ sim_data <- generateData(model_base,
                          .empirical = TRUE, 
                          a = c(0), 
                          b = c(0.5),
-                         c = c(0.1),
-                         d = c(0.4),
-                         e = c(0.5),
                          .return_type = "cor")
 
 cl <- parallel::makeCluster(4)
@@ -50,8 +41,8 @@ doParallel::registerDoParallel(cl)
 
 o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combine = "rbind") %:%
   
-  foreach(n = c(10000), .combine = "rbind") %:%
-  foreach(sim_runs = 1:10, .combine = "rbind") %dopar% {
+  foreach(n = c(50, 100, 200, 500), .combine = "rbind") %:%
+  foreach(sim_runs = 1:100, .combine = "rbind") %dopar% {
     
     set.seed(50+jj+sim_runs+n)
     data_sim <- MASS::mvrnorm(n = n, 
@@ -79,7 +70,6 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
     wt = c(res$Estimates$Weight_estimates[1,1:3],
            res$Estimates$Weight_estimates[2,4:6],
            res$Estimates$Weight_estimates[3,7:9])
-    
     
     ####################################################################################
     ## Berechnung der Varianz-Covarianz-Matrix der Korrelationskoeffizienten gilt nur asymptotisch Dykstra(2013) S.11

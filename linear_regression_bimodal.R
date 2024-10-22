@@ -38,7 +38,7 @@ sim_data_einzel <- generateData(model_base,
                                 .return_type = "cor" 
                                 )
 
-n = 1000
+n = 75
 set.seed(50 + 43 + 1 + 50)
 data_sim_einzelanalyse <- MASS::mvrnorm(n = n, 
                                         mu= rep(0, nrow(sim_data_einzel$dgp[[1]])), 
