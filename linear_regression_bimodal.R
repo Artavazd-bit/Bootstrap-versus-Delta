@@ -35,7 +35,8 @@ sim_data_einzel <- generateData(model_base,
                                 .empirical = TRUE, 
                                 a = 0.6, 
                                 b = 0.2,
-                                .return_type = "cor" )
+                                .return_type = "cor" 
+                                )
 
 n = 1000
 set.seed(50 + 43 + 1 + 50)
