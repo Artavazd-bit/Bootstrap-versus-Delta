@@ -47,7 +47,7 @@ sim_data_einzel <- generateData(model_base,
                                 e = 0.5,
                                 .return_type = "cor" )
 
-n = 50
+n = 10000
 set.seed(50 + 43 + 1 + 50)
 data_sim_einzelanalyse <- MASS::mvrnorm(n = n, 
                                         mu= rep(0, nrow(sim_data_einzel$dgp[[1]])), 
@@ -68,7 +68,7 @@ infer_res$Path_estimates$CI_percentile["95%L", "Y ~ X1"]
 
 plot(density(res_einzelanalyse$Estimates$Estimates_resample$Estimates1$Path_estimates$Resampled[,'Y ~ X1']), main = "Empirical distribution of parameter estimates")
 dip <- diptest::dip.test(res_einzelanalyse$Estimates$Estimates_resample$Estimates1$Path_estimates$Resampled[,'Y ~ X1'])
-
+dip$p.value
 
 wt1 = c(res_einzelanalyse$Estimates$Weight_estimates[1,1:3],
         res_einzelanalyse$Estimates$Weight_estimates[2,4:6],
