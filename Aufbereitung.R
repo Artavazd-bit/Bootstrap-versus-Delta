@@ -19,6 +19,26 @@ overview_table_2_high_values$perc_ci_sgn_same_y_x1 <- NULL
 overview_table_2_high_values$sd_delta_y_x2 <- NULL
 View(overview_table_2_high_values)
 
+filtered_data <- overview_table[
+  overview_table$c %in% c(0.1, 0.2, 0.3, 0.4, 0.5) & 
+    overview_table$n %in% c(50, 100, 200, 500), 
+]
+
+# Plot the densities
+ggplot(filtered_data, aes(x = path_estimate_y_x1.Y...X1, color = factor(a))) +
+  geom_density() +
+  scale_color_manual(values = c("0" = "black","0.1" = "grey","0.2" = "orange", "0.3" = "blue", "0.4" = "green", "0.5" = "red")) +
+  facet_grid(a ~ c + n) +  # Create a grid for each combination of 'a', 'c', and 'n'
+  labs(title = "Density of path_estimate_y_x1.Y...X1 for different 'a', 'c', and 'n' values",
+       x = "path_estimate_y_x1.Y...X1",
+       y = "Density",
+       color = "a values") +
+  theme_minimal()
+
+##################################################################################
+
+
+
 ##################################NULL########NULL##################################NULL###############NNULL##################################NULL###############NULL##################################NULL##################NUNULL##################################NULL##################NULL##################################NULL###############################################################################
 overview_table_3 <- overview_table_2 %>% 
                                     group_by(a, c, n) %>%
