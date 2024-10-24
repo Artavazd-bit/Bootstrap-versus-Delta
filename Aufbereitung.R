@@ -20,7 +20,7 @@ overview_table_2_high_values$sd_delta_y_x2 <- NULL
 View(overview_table_2_high_values)
 
 filtered_data <- overview_table[
-  overview_table$c %in% c(0.1, 0.2, 0.3, 0.4, 0.5) & 
+  overview_table$c %in% c(0, 0.1, 0.2, 0.3, 0.4, 0.5) & 
     overview_table$n %in% c(50, 100, 200, 500), 
 ]
 
