@@ -40,15 +40,15 @@ set.seed(123)
 sim_data_einzel <- generateData(model_base, 
                                 .N= 5000, 
                                 .empirical = TRUE, 
-                                a = 0, 
+                                a = 0.2, 
                                 b = 0.5,
-                                c = 0.1,
+                                c = 0.3,
                                 d = 0.4,
                                 e = 0.5,
                                 .return_type = "cor" )
 
-n = 10000
-set.seed(50 + 43 + 1 + 50)
+n = 100
+set.seed(50 + 43 + 3 + 50 )
 data_sim_einzelanalyse <- MASS::mvrnorm(n = n, 
                                         mu= rep(0, nrow(sim_data_einzel$dgp[[1]])), 
                                         Sigma =  sim_data_einzel$dgp[[1]],
@@ -67,6 +67,26 @@ infer_res <- infer(res_einzelanalyse, .alpha = 0.05, .quantity = "CI_percentile"
 infer_res$Path_estimates$CI_percentile["95%L", "Y ~ X1"]
 
 plot(density(res_einzelanalyse$Estimates$Estimates_resample$Estimates1$Path_estimates$Resampled[,'Y ~ X1']), main = "Empirical distribution of parameter estimates")
+set.seed(50 + 43 + 4 + 50 )
+data_sim_einzelanalyse <- MASS::mvrnorm(n = n, 
+                                        mu= rep(0, nrow(sim_data_einzel$dgp[[1]])), 
+                                        Sigma =  sim_data_einzel$dgp[[1]],
+                                        empirical = F
+)
+
+res_einzelanalyse <- csem(.data = data_sim_einzelanalyse, 
+                          .model = model_est,
+                          .resample_method = 'bootstrap',
+                          .R = 500,   
+                          .PLS_weight_scheme_inner = 'factorial',
+                          .tolerance = 1e-06
+)
+
+
+line(density(res_einzelanalyse$Estimates$Estimates_resample$Estimates1$Path_estimates$Resampled[,'Y ~ X1']))
+
+
+
 dip <- diptest::dip.test(res_einzelanalyse$Estimates$Estimates_resample$Estimates1$Path_estimates$Resampled[,'Y ~ X1'])
 dip$p.value
 
