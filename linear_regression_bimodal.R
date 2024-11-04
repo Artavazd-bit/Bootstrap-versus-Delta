@@ -33,8 +33,8 @@ set.seed(123)
 sim_data_einzel <- generateData(model_base, 
                                 .N= 5000, 
                                 .empirical = TRUE, 
-                                a = 0.6, 
-                                b = 0.2,
+                                a = c(0), 
+                                b = 0.5,
                                 .return_type = "cor" 
                                 )
 

@@ -4,7 +4,7 @@ library(cSEM.DGP)
 library(lavaan)
 library(foreach)
 library(doParallel)
-
+library(tibble)
 
 model_base <- "
 # Structural model
@@ -41,15 +41,15 @@ doParallel::registerDoParallel(cl)
 
 o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combine = "rbind") %:%
   
-  foreach(n = c(50, 100, 200, 500), .combine = "rbind") %:%
-  foreach(sim_runs = 1:100, .combine = "rbind") %dopar% {
+  foreach(n = c(50), .combine = "rbind") %:%
+  foreach(sim_runs = 1:2, .combine = "rbind") %dopar% {
     
     set.seed(50+jj+sim_runs+n)
     data_sim <- MASS::mvrnorm(n = n, 
                               mu= rep(0, nrow(sim_data$dgp[[jj]])), 
                               Sigma =  sim_data$dgp[[jj]],
                               empirical = F
-                              )
+    )
     
     res <- csem(.data = data_sim, 
                 .model = model_est,
@@ -57,7 +57,7 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
                 .R = 500,   
                 .PLS_weight_scheme_inner = 'factorial',
                 .tolerance = 1e-06
-                )
+    )
     
     infer_res <- infer(res, .alpha = 0.05, .quantity = "CI_percentile")
     # Delta-Methode 
@@ -71,6 +71,7 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
            res$Estimates$Weight_estimates[2,4:6],
            res$Estimates$Weight_estimates[3,7:9])
     
+    
     ####################################################################################
     ## Berechnung der Varianz-Covarianz-Matrix der Korrelationskoeffizienten gilt nur asymptotisch Dykstra(2013) S.11
     ## nach Dykstra(2013) Gleichung 27/28 und Isserlis(2019) Gleichung 21 + Anmerkungen von Flo
@@ -79,16 +80,16 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
     cor_data_sim <- cor(data_sim)
     cnter_y <- 1
     cnter_t <- 1
-    for(x in 1:8){
+    for(x in 1:(ncol(data_sim)-1)){
       bar_x <- mean(data_sim[,x])
       sigma_x <- sd(data_sim[,x])
-      for(y in (x+1):9){
+      for(y in (x+1):ncol(data_sim)){
         bar_y <- mean(data_sim[,y])
         sigma_y <- sd(data_sim[,y])
-        for(z in 1:8){
+        for(z in 1:(ncol(data_sim)-1)){
           bar_z <- mean(data_sim[,z])
           sigma_z <- sd(data_sim[,z])
-          for(t in (z+1):9){
+          for(t in (z+1):ncol(data_sim)){
             bar_t <- mean(data_sim[,t])
             sigma_t <- sd(data_sim[,t])
             
@@ -173,8 +174,8 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
     cnter = 1
     for(dh in list_dh_all){
       #print(dh)
-      for (i in 1:8) {
-        for (j in (i+1):9) {
+      for (i in 1:(ncol(data_sim)-1)) {
+        for (j in (i+1):ncol(data_sim)) {
           cor_sim1 <- cor(data_sim)
           cor_sim1[i,j] = cor_sim1[i,j] + dh
           cor_sim1[j,i] = cor_sim1[i,j]
@@ -228,35 +229,66 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
     Gbt_x1 <- t(as.matrix(Gbt_overview_delta_x1[,"1e-05"]))
     Gbt_x2 <- t(as.matrix(Gbt_overview_delta_x2[,"1e-05"]))
     
+    
     dip <- diptest::dip.test(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Resampled[,'Y ~ X1'])
     
     
-    csv_write <- c("a" = sim_data$a[jj],
-                   "c" = sim_data$c[jj], 
-                   "path_estimate_y_x1" = res$Estimates$Estimates_resample$Estimates1$Path_estimates$Original['Y ~ X1'], 
-                   "path_estimate_y_x2" = res$Estimates$Estimates_resample$Estimates1$Path_estimates$Original['Y ~ X2'],
-                   "sd_bootstrap_y_x1" = sd(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Resampled[,'Y ~ X1']), 
-                   "Z_test_boot_y_x1" = abs(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Original['Y ~ X1']/ sd(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Resampled[,'Y ~ X1'])) < qnorm(0.975),
-                   "Z_test_boot_y_x2" = abs(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Original['Y ~ X2']/ sd(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Resampled[,'Y ~ X2'])) < qnorm(0.975),
-                   "perc_ci_lb_boot_y_x1" = infer_res$Path_estimates$CI_percentile["95%L", "Y ~ X1"], 
-                   "perc_ci_ub_boot_y_x1" = infer_res$Path_estimates$CI_percentile["95%U", "Y ~ X1"], 
-                   "perc_ci_sgn_same_y_x1" = sign(infer_res$Path_estimates$CI_percentile["95%L", "Y ~ X1"]) == sign(infer_res$Path_estimates$CI_percentile["95%U", "Y ~ X1"]), 
-                   "sd_delta_y_x1" =  sqrt(diag( Gbt_x1 %*% vc_r %*% t(Gbt_x1))), 
-                   "Z_test_delta_y_x1" = abs(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Original['Y ~ X1']/sqrt(diag( Gbt_x1 %*% vc_r %*% t(Gbt_x1) ))) < qnorm(0.975), 
-                   "sd_delta_y_x2" = sqrt(diag( Gbt_x2 %*% vc_r %*% t(Gbt_x2) )), 
-                   "Z_test_delta_y_x2" = abs(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Original['Y ~ X2']/sqrt(diag( Gbt_x2 %*% vc_r %*% t(Gbt_x2) ))) < qnorm(0.975),
-                   "Sim_run" = sim_runs, 
-                   "simulation_run" = jj, 
-                   "n" = n,
-                   "c_estimate" = res$Estimates$Construct_VCV["X1", "X2"], 
-                   "dip_test_p_value" = dip$p.value
+    csv_write <- data.frame(a = sim_data$a[jj],
+                            c = sim_data$c[jj], 
+                            path_estimate_y_x1 = res$Estimates$Estimates_resample$Estimates1$Path_estimates$Original['Y ~ X1'], 
+                            path_estimate_y_x2 = res$Estimates$Estimates_resample$Estimates1$Path_estimates$Original['Y ~ X2'],
+                            sd_bootstrap_y_x1 = sd(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Resampled[,'Y ~ X1']), 
+                            Z_test_boot_y_x1 = abs(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Original['Y ~ X1']/ sd(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Resampled[,'Y ~ X1'])) < qnorm(0.975),
+                            Z_test_boot_y_x2 = abs(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Original['Y ~ X2']/ sd(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Resampled[,'Y ~ X2'])) < qnorm(0.975),
+                            perc_ci_lb_boot_y_x1 = infer_res$Path_estimates$CI_percentile["95%L", "Y ~ X1"], 
+                            perc_ci_ub_boot_y_x1 = infer_res$Path_estimates$CI_percentile["95%U", "Y ~ X1"], 
+                            perc_ci_sgn_same_y_x1 = sign(infer_res$Path_estimates$CI_percentile["95%L", "Y ~ X1"]) == sign(infer_res$Path_estimates$CI_percentile["95%U", "Y ~ X1"]), 
+                            sd_delta_y_x1 =  sqrt(diag( Gbt_x1 %*% vc_r %*% t(Gbt_x1))), 
+                            Z_test_delta_y_x1 = abs(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Original['Y ~ X1']/sqrt(diag( Gbt_x1 %*% vc_r %*% t(Gbt_x1) ))) < qnorm(0.975), 
+                            sd_delta_y_x2 = sqrt(diag( Gbt_x2 %*% vc_r %*% t(Gbt_x2) )), 
+                            Z_test_delta_y_x2 = abs(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Original['Y ~ X2']/sqrt(diag( Gbt_x2 %*% vc_r %*% t(Gbt_x2) ))) < qnorm(0.975),
+                            Sim_run = sim_runs, 
+                            simulation_run = jj, 
+                            n = n,
+                            c_estimate = res$Estimates$Construct_VCV["X1", "X2"],
+                            dip_test_p_value = dip$p.value
     )
     
-    #write.csv(x = csv_write, file = paste0("./Data/file_", sim_data$a[jj], "_", sim_data$c[jj], "_", n, "_", sim_runs, "_", jj, ".csv"))
-    
+    csv_write$list_with_bootstrap <- list(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Resampled[,'Y ~ X1'])
     csv_write
-    
   } 
 closeAllConnections()
 
-write.csv(x = o_table, file = "./Data/2024_10_21_overview_table_a_0_c_0_1.csv")
+# write.csv(x = o_table, file = "./Data/2024_11_04_linear_regression.csv")
+saveRDS(o_table, file = "./Data/2024_11_04_linear_regression.rds")
+
+
+df_long <- o_table %>%
+  unnest(col = c(list_with_bootstrap)) %>%
+  rename(Bootstrap = list_with_bootstrap)  # Umbenennen für Klarheit
+
+# Dichte-Plot erstellen
+ggplot() +
+  # Helle graue Schattierung für Bootstrap-Werte
+  geom_density(data = df_long, aes(x = Bootstrap, group = Sim_run), color = "lightgray", alpha = 0.5) +
+  # Dichte-Linie für path_estimate_y_x1.Y...X1 für jede Population
+  geom_density(data = o_table, aes(x = path_estimate_y_x1, color = as.factor(a)), size = 1) +
+  labs(title = "Dichteplot der Pfadschätzung mit Bootstrap-Verteilung",
+       x = "Pfad-Koeffizient",
+       y = "Dichte",
+       color = "Population") +
+  theme_minimal() +
+  facet_wrap(a ~ n + c) 
+
+
+df <- data.frame(
+  a = rep(1:3, each = 1),
+  c = runif(3),
+  n = sample(100:200, 3),
+  path_estimate_y_x1.Y...X1 = runif(3)
+)
+
+df$list_with_bootstrap <- list(
+  rnorm(100, mean = 0.5), rnorm(100, mean = 0.3), rnorm(100, mean = 0.7)
+)
+
