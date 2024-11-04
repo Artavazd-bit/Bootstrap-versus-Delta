@@ -1,0 +1,2 @@
+"","a","c","path_estimate_y_x1","path_estimate_y_x2","sd_bootstrap_y_x1","Z_test_boot_y_x1","Z_test_boot_y_x2","perc_ci_lb_boot_y_x1","perc_ci_ub_boot_y_x1","perc_ci_sgn_same_y_x1","sd_delta_y_x1","Z_test_delta_y_x1","sd_delta_y_x2","Z_test_delta_y_x2","Sim_run","simulation_run","n","c_estimate","dip_test_p_value","list_with_bootstrap"
+"Y ~ X1",0.1,0,0.0801261585858585,0.686770465745109,0.251220349153724,TRUE,FALSE,-0.425578122506798,0.492813048812967,FALSE,0.248946039955897,TRUE,0.0796798423122167,FALSE,1,1,50,0.0540709875941683,0.862812845832421,
