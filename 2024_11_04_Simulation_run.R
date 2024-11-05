@@ -175,7 +175,7 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
                        .tolerance = 1e-06
                        )
           # in h-Methode: f(x+h):
-          bt1 = out1$Estimates$Path_estimates["Y",1:Anzahl_path_estimate]
+          bt1 = out1$Estimates$Path_estimates["Y",1:ö]
           # f(x+h) - f(x) / h
           dlta_bt = (bt1 - bt)/dh
           Gbt[,cnter] = dlta_bt[1]
@@ -196,7 +196,7 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
     dip <- diptest::dip.test(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Resampled[,'Y ~ X1'])
     
     csv_write <- data.frame(a = sim_data$a[jj],
-                            c = sim_data$c[jj], 
+                            b = sim_data$b[jj], 
                             path_estimate_y_x1 = res$Estimates$Estimates_resample$Estimates1$Path_estimates$Original['Y ~ X1'], 
                             path_estimate_y_x2 = res$Estimates$Estimates_resample$Estimates1$Path_estimates$Original['Y ~ X2'],
                             sd_bootstrap_y_x1 = sd(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Resampled[,'Y ~ X1']), 
@@ -214,7 +214,7 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
                             n = n,
                             c_estimate = res$Estimates$Construct_VCV["X1", "X2"],
                             dip_test_p_value = dip$p.value
-    )
+                            )
     csv_write$list_with_bootstrap <- list(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Resampled[,'Y ~ X1'])
     csv_write
   } 
