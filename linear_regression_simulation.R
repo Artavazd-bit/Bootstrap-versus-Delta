@@ -61,22 +61,13 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
     
     infer_res <- infer(res, .alpha = 0.05, .quantity = "CI_percentile")
     # Delta-Methode 
-    bt = res$Estimates$Path_estimates[3,1:2]
-    # Loadings
-    lt = c(res$Estimates$Loading_estimates[1,1:3],
-           res$Estimates$Loading_estimates[2,4:6],
-           res$Estimates$Loading_estimates[3,7:9])
-    # Weights
-    wt = c(res$Estimates$Weight_estimates[1,1:3],
-           res$Estimates$Weight_estimates[2,4:6],
-           res$Estimates$Weight_estimates[3,7:9])
-    
-    
+    bt = res$Estimates$Path_estimates[nrow(data_sim),1:2]
     ####################################################################################
     ## Berechnung der Varianz-Covarianz-Matrix der Korrelationskoeffizienten gilt nur asymptotisch Dykstra(2013) S.11
     ## nach Dykstra(2013) Gleichung 27/28 und Isserlis(2019) Gleichung 21 + Anmerkungen von Flo
     ####################################################################################
-    vc_r <- matrix(0 , nrow = 36 , ncol = 36)
+    size_n_ <- ((nrow(data_sim)*nrow(data_sim)) - nrow(data_sim))/2
+    vc_r <- matrix(0 , nrow = size_n_ , ncol = size_n_)
     cor_data_sim <- cor(data_sim)
     cnter_y <- 1
     cnter_t <- 1
@@ -150,24 +141,21 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
     
     # Ein paar Werte werden initialisiert
     # für den Gradienten der pfadestimates
-    gr = matrix(0 , nrow = 36 , ncol = 1)
-    gdr = matrix(0 , nrow = 36 , ncol = 1)
+    
+
+    gr = matrix(0 , nrow = size_n_ , ncol = 1)
+    gdr = matrix(0 , nrow = size_n_ , ncol = 1)
     # Path estimates
-    Gbt = matrix(0 , nrow = 2 , ncol = 36)
-    Gbt2 = matrix(0 , nrow = 2 , ncol = 36)
-    
-    # für die Gewichte
-    Gwt = matrix(0 , nrow = 9 , ncol = 36)
-    # für die Loadings
-    Glt = matrix(0 , nrow = 9 , ncol = 36)
+    Gbt = matrix(0 , nrow = 2 , ncol = size_n_)
+    Gbt2 = matrix(0 , nrow = 2 , ncol = size_n_)
+
     # für die h - Methode
-    
     list_dh_all <- c(0.00001)
     #Übersicht für verschiedene dh
-    Gbt_overview_delta_x1 <- data.frame(matrix(0, nrow = 36, ncol = 1))
+    Gbt_overview_delta_x1 <- data.frame(matrix(0, nrow = size_n_, ncol = 1))
     colnames(Gbt_overview_delta_x1) <- list_dh_all
     
-    Gbt_overview_delta_x2 <-data.frame(matrix(0, nrow = 36, ncol = 1))
+    Gbt_overview_delta_x2 <-data.frame(matrix(0, nrow = size_n_, ncol = 1))
     colnames(Gbt_overview_delta_x2) <- list_dh_all
     
     # Counter, sodass jeder Korrelationskoeffizient durchgegangen wird
@@ -194,32 +182,19 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
           )
           
           # in h-Methode: f(x+h)
-          bt1 = out1$Estimates$Path_estimates[3,1:2]
+          bt1 = out1$Estimates$Path_estimates[nrow(data_sim),1:2]
           # f(x+h) - f(x) / h
           dlta_bt = (bt1 - bt)/dh
           Gbt[,cnter] = dlta_bt[1]
           Gbt2[,cnter] = dlta_bt[2]
-          
-          lt1 = c(out1$Estimates$Loading_estimates[1,1:3],
-                  out1$Estimates$Loading_estimates[2,4:6],
-                  out1$Estimates$Loading_estimates[3,7:9])
-          dlta_lt = (lt1 - lt)/dh
-          Glt[,cnter] = dlta_lt 
-          
-          wt1 = c(out1$Estimates$Weight_estimates[1,1:3],
-                  out1$Estimates$Weight_estimates[2,4:6],
-                  out1$Estimates$Weight_estimates[3,7:9])
-          dlta_wt = (wt1 - wt)/dh
-          Gwt[,cnter] = dlta_wt
-          
           cnter = cnter + 1
         }
       }
       cnter <- 1
       Gbt_overview_delta_x1[, paste0(dh)]  <- Gbt[1,]
       Gbt_overview_delta_x2[, paste0(dh)]  <- Gbt2[1,]
-      Gbt = matrix(0 , nrow = 2 , ncol = 36)
-      Gbt2 = matrix(0 , nrow = 2 , ncol = 36)
+      Gbt = matrix(0 , nrow = 2 , ncol = size_n_)
+      Gbt2 = matrix(0 , nrow = 2 , ncol = size_n_)
       #Gwt_overview[, paste0(dh)]  <- Gwt[1,]
       #Gwt = matrix(0 , nrow = 9 , ncol = 36)
       #Glt_overview[, paste0(dh)]  <- Glt[1,]
@@ -262,33 +237,33 @@ closeAllConnections()
 # write.csv(x = o_table, file = "./Data/2024_11_04_linear_regression.csv")
 saveRDS(o_table, file = "./Data/2024_11_04_linear_regression.rds")
 
-
-df_long <- o_table %>%
-  unnest(col = c(list_with_bootstrap)) %>%
-  rename(Bootstrap = list_with_bootstrap)  # Umbenennen für Klarheit
-
-# Dichte-Plot erstellen
-ggplot() +
-  # Helle graue Schattierung für Bootstrap-Werte
-  geom_density(data = df_long, aes(x = Bootstrap, group = Sim_run), color = "lightgray", alpha = 0.5) +
-  # Dichte-Linie für path_estimate_y_x1.Y...X1 für jede Population
-  geom_density(data = o_table, aes(x = path_estimate_y_x1, color = as.factor(a)), size = 1) +
-  labs(title = "Dichteplot der Pfadschätzung mit Bootstrap-Verteilung",
-       x = "Pfad-Koeffizient",
-       y = "Dichte",
-       color = "Population") +
-  theme_minimal() +
-  facet_wrap(a ~ n + c) 
-
-
-df <- data.frame(
-  a = rep(1:3, each = 1),
-  c = runif(3),
-  n = sample(100:200, 3),
-  path_estimate_y_x1.Y...X1 = runif(3)
-)
-
-df$list_with_bootstrap <- list(
-  rnorm(100, mean = 0.5), rnorm(100, mean = 0.3), rnorm(100, mean = 0.7)
-)
+# 
+# df_long <- o_table %>%
+#   unnest(col = c(list_with_bootstrap)) %>%
+#   rename(Bootstrap = list_with_bootstrap)  # Umbenennen für Klarheit
+# 
+# # Dichte-Plot erstellen
+# ggplot() +
+#   # Helle graue Schattierung für Bootstrap-Werte
+#   geom_density(data = df_long, aes(x = Bootstrap, group = Sim_run), color = "lightgray", alpha = 0.5) +
+#   # Dichte-Linie für path_estimate_y_x1.Y...X1 für jede Population
+#   geom_density(data = o_table, aes(x = path_estimate_y_x1, color = as.factor(a)), size = 1) +
+#   labs(title = "Dichteplot der Pfadschätzung mit Bootstrap-Verteilung",
+#        x = "Pfad-Koeffizient",
+#        y = "Dichte",
+#        color = "Population") +
+#   theme_minimal() +
+#   facet_wrap(a ~ n + c) 
+# 
+# 
+# df <- data.frame(
+#   a = rep(1:3, each = 1),
+#   c = runif(3),
+#   n = sample(100:200, 3),
+#   path_estimate_y_x1.Y...X1 = runif(3)
+# )
+# 
+# df$list_with_bootstrap <- list(
+#   rnorm(100, mean = 0.5), rnorm(100, mean = 0.3), rnorm(100, mean = 0.7)
+# )
 
