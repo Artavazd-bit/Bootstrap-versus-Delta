@@ -175,7 +175,7 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
                        .tolerance = 1e-06
                        )
           # in h-Methode: f(x+h):
-          bt1 = out1$Estimates$Path_estimates["Y",1:ö]
+          bt1 = out1$Estimates$Path_estimates["Y",1:Anzahl_path_estimate]
           # f(x+h) - f(x) / h
           dlta_bt = (bt1 - bt)/dh
           Gbt[,cnter] = dlta_bt[1]
