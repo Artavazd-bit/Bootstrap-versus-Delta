@@ -31,7 +31,7 @@ set.seed(123)
 sim_data <- generateData(model_base, 
                          .N= 5000, 
                          .empirical = TRUE, 
-                         a = c(0), 
+                         a = c(0, 0.1, 0.2), 
                          b = c(0.5),
                          .return_type = "cor")
 
