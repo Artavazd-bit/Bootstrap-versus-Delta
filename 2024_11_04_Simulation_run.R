@@ -39,8 +39,8 @@ cl <- parallel::makeCluster(8)
 doParallel::registerDoParallel(cl)
 
 o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combine = "rbind") %:%
-  foreach(n = c(50, 100, 200, 500), .combine = "rbind") %:%
-  foreach(sim_runs = 1:100, .combine = "rbind") %dopar% 
+  foreach(n = c(50), .combine = "rbind") %:%
+  foreach(sim_runs = 1:5, .combine = "rbind") %dopar% 
     {
     set.seed(50+jj+sim_runs+n)
     # Ziehe Daten aus einer Normalverteilung mit Varianz-Covarianz-Matrix aus sim_data  
@@ -164,6 +164,7 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
           cor_sim1 <- cor(data_sim)
           cor_sim1[i,j] = cor_sim1[i,j] + dh
           cor_sim1[j,i] = cor_sim1[i,j]
+          set.seed(50+jj+sim_runs+n)
           data_after_dh <- MASS::mvrnorm(n = n, 
                                          mu = rep(0,nrow(sim_data$dgp[[jj]])), 
                                          Sigma = cor_sim1, 
