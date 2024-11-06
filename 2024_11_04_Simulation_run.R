@@ -31,16 +31,16 @@ set.seed(123)
 sim_data <- generateData(model_base, 
                          .N= 5000, 
                          .empirical = TRUE, 
-                         a = c(0, 0.1, 0.2), 
-                         b = c(0.5),
+                         a = c(0, 0.1, 0.2, 0.3), 
+                         b = c(0, 0.1, 0.2, 0.3),
                          .return_type = "cor")
 
-cl <- parallel::makeCluster(4)
+cl <- parallel::makeCluster(8)
 doParallel::registerDoParallel(cl)
 
 o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combine = "rbind") %:%
-  foreach(n = c(50), .combine = "rbind") %:%
-  foreach(sim_runs = 1:2, .combine = "rbind") %do% 
+  foreach(n = c(50, 100, 200, 500), .combine = "rbind") %:%
+  foreach(sim_runs = 1:100, .combine = "rbind") %dopar% 
     {
     set.seed(50+jj+sim_runs+n)
     # Ziehe Daten aus einer Normalverteilung mit Varianz-Covarianz-Matrix aus sim_data  
@@ -219,6 +219,6 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
     csv_write
   } 
 closeAllConnections()
-saveRDS(o_table, file = "./Data/2024_11_05_linear_regression.rds")
+saveRDS(o_table, file = "./Data/2024_11_06_linear_regression.rds")
 
     
