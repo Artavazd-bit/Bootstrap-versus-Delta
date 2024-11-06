@@ -4,6 +4,7 @@ library(cSEM.DGP)
 library(lavaan)
 library(foreach)
 library(doParallel)
+library(diptest)
 
 model_base <- "
 # Structural model
