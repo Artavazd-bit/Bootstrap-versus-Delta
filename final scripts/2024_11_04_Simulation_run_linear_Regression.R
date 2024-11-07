@@ -222,6 +222,3 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
   } 
 closeAllConnections()
 saveRDS(o_table, file = "./Data/2024_11_06_linear_regression.rds")
-
-
-    
