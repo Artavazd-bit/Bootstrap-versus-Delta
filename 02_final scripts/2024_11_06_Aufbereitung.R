@@ -3,24 +3,25 @@ library(tidyr)
 library(ggplot2)
 library(dplyr)
 
-o_table <- readRDS("./Data/2024_11_06_sem_3_latent.rds")
+o_table <- readRDS("./01_Data/2024_11_06_sem_3_latent.rds")
 
 
 o_table_2 <- o_table %>% 
   group_by(a, c, n) %>%
   summarize(Rejection_rate_boot = mean(`Z_test_boot_y_x1`), 
             Rejection_rate_delta = mean(`Z_test_delta_y_x1`),
-            )
+            dip_test_mean = mean(dip_test_p_value))
 
 
 ################################################################################
-o_table_lr <- readRDS("./Data/2024_11_06_linear_regression.rds")
+o_table_lr <- readRDS("./01_Data/2024_11_06_linear_regression.rds")
 
 o_table_lr_2 <- o_table_lr %>% 
   group_by(a, b, n) %>%
   summarize(Rejection_rate_boot = mean(`Z_test_boot_y_x1`), 
             Rejection_rate_delta = mean(`Z_test_delta_y_x1`),
-  )
+            dip_test_mean = mean(dip_test_p_value)
+            )
 
 ################################################################################
 ggplot(o_table, aes(x = path_estimate_y_x1, color = interaction(a, c, n))) + 
