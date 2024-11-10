@@ -46,7 +46,7 @@ sim_data <- generateData(model_base,
                          .empirical = TRUE, 
                          a = c(0.3), 
                          b = c(0.5),
-                         c = c(0, 0.1, 0.2, 0.3),
+                         c = c(0.1),
                          d = c(0.4),
                          e = c(0.5),
                          .return_type = "cor")
@@ -55,8 +55,8 @@ cl <- parallel::makeCluster(7)
 doParallel::registerDoParallel(cl)
 
 o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combine = "rbind") %:%
-  foreach(n = c(50, 100, 200, 10000), .combine = "rbind") %:%
-  foreach(sim_runs = 1:5, .combine = "rbind") %do% 
+  foreach(n = c(10000), .combine = "rbind") %:%
+  foreach(sim_runs = 1:1, .combine = "rbind") %do% 
   {
     set.seed(50+jj+sim_runs+n)
     # Ziehe Daten aus einer Normalverteilung mit Varianz-Covarianz-Matrix aus sim_data  
