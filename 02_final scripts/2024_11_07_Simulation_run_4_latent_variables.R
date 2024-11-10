@@ -46,17 +46,17 @@ sim_data <- generateData(model_base,
                          .empirical = TRUE, 
                          a = c(0.3), 
                          b = c(0.5),
-                         c = c(0.1),
+                         c = c(0, 0.1, 0.2, 0.3),
                          d = c(0.4),
                          e = c(0.5),
                          .return_type = "cor")
 
-cl <- parallel::makeCluster(4)
+cl <- parallel::makeCluster(7)
 doParallel::registerDoParallel(cl)
 
 o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combine = "rbind") %:%
-  foreach(n = c(50), .combine = "rbind") %:%
-  foreach(sim_runs = 1:2, .combine = "rbind") %do% 
+  foreach(n = c(50, 100, 200, 10000), .combine = "rbind") %:%
+  foreach(sim_runs = 1:5, .combine = "rbind") %do% 
   {
     set.seed(50+jj+sim_runs+n)
     # Ziehe Daten aus einer Normalverteilung mit Varianz-Covarianz-Matrix aus sim_data  
@@ -208,9 +208,12 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
                             simulation_run = jj, 
                             dip_test_p_value = dip$p.value
     )
+    write.table(csv_write, file=paste("./Data/Progress_for_4_latent_var/Progress_",c,"_samplesize_",n,"_sim_run_", Sim_run , sep=""),
+                sep="\t", row.names=F)
+    
     csv_write$list_with_bootstrap <- list(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Resampled[,'X3 ~ X2'])
     csv_write
   } 
 closeAllConnections()
-saveRDS(o_table, file = "./Data/2024_11_06_sem_3_latent.rds")
+saveRDS(o_table, file = "./Data/2024_11_09_sem_4_latent.rds")
 
