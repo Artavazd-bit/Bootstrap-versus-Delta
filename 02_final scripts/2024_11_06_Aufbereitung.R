@@ -24,6 +24,17 @@ o_table_lr_2 <- o_table_lr %>%
             )
 
 ################################################################################
+o_table_4_latent <- readRDS("./01_Data/2024_11_11_sem_4_latent.rds")
+
+o_table_4_latent_2 <- o_table_4_latent %>% 
+  group_by(a, b, c, d, e, n) %>%
+  summarize(Rejection_rate_boot = mean(`Z_test_boot_x3_x2`), 
+            Rejection_rate_delta = mean(`Z_test_delta_x3_x2`),
+            dip_test_mean = mean(dip_test_p_value)
+  )
+
+
+################################################################################
 ggplot(o_table, aes(x = path_estimate_y_x1, color = interaction(a, c, n))) + 
   geom_density() + 
   facet_wrap(~ interaction(a, c, n), scales = "free") + 
