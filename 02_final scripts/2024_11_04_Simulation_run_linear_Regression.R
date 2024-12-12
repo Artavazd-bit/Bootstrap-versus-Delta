@@ -27,21 +27,32 @@ X1 <~ x11
 X2 <~ x21
 Y <~ y1
 "
+
+model_est_sem <- "
+# Structural model
+Y ~ X1 + X2
+# Measurement model
+# Ladungen zwischen -1 und 1 
+# Werte zwischen 0.6 und 0.9
+X1 =~ x11 
+X2 =~ x21
+Y =~ y1
+"
 Anzahl_path_estimate <- 2
 set.seed(123)
 sim_data <- generateData(model_base, 
                          .N= 5000, 
                          .empirical = TRUE, 
-                         a = c(0, 0.1, 0.2, 0.3), 
-                         b = c(0, 0.1, 0.2, 0.3),
+                         a = c(0.1), 
+                         b = c(0.1),
                          .return_type = "cor")
 
 cl <- parallel::makeCluster(8)
 doParallel::registerDoParallel(cl)
 
 o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combine = "rbind") %:%
-  foreach(n = c(50, 100, 200, 10000), .combine = "rbind") %:%
-  foreach(sim_runs = 1:100, .combine = "rbind") %dopar% 
+  foreach(n = c(25), .combine = "rbind") %:%
+  foreach(sim_runs = 1:10, .combine = "rbind") %dopar% 
     {
     set.seed(50+jj+sim_runs+n)
     # Ziehe Daten aus einer Normalverteilung mit Varianz-Covarianz-Matrix aus sim_data  
@@ -51,6 +62,12 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
                               empirical = F
                               )
     # Schätze mit den aus den oben gezogenen Daten die Parameter
+    res_sem <- sem(model = model_est_sem, 
+                            data = data_sim
+                            )
+    paramees <- parameterEstimates(res_sem)
+    paramees2 <- paramees[paramees$lhs == "Y" & paramees$op == "~" & paramees$rhs == "X1",]
+    
     res <- csem(.data = data_sim, 
                 .model = model_est,
                 .resample_method = 'bootstrap',
@@ -121,7 +138,6 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
             mu_xyzz <- 1/nrow(data_sim) * mu_xyzz_temp
             
             mu_xytt <- 1/nrow(data_sim) * mu_xytt_temp
-            
             
             mu_xxtt <- 1/nrow(data_sim) * mu_xxtt_temp
             mu_xxzz <- 1/nrow(data_sim) * mu_xxzz_temp
@@ -215,7 +231,12 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
                             simulation_run = jj, 
                             n = n,
                             c_estimate = res$Estimates$Construct_VCV["X1", "X2"],
-                            dip_test_p_value = dip$p.value
+                            dip_test_p_value = dip$p.value,
+                            ML_estimate  = paramees2$est,
+                            ML_se = paramees2$se,
+                            ML_z = paramees2$z,
+                            ML_z_p_value = paramees2$pvalue,
+                            ML_z_test  = paramees2$pvalue < 0.05
                             )
     csv_write$list_with_bootstrap <- list(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Resampled[,'Y ~ X1'])
     csv_write
