@@ -34,6 +34,18 @@ X1 <~ x11 + x12 + x13
 X2 <~ x21 + x22 + x23
 Y <~ y1 + y2 + y3
 "
+
+model_est_sem <- "
+# Structural model
+Y ~ X1 + X2
+# Measurement model
+# Ladungen zwischen -1 und 1 
+# Werte zwischen 0.6 und 0.9
+X1 =~ x11 + x12 + x13
+X2 =~ x21 + x22 + x23
+Y =~ y1 + y2 + y3
+"
+
 Anzahl_path_estimate <- 2
 set.seed(123)
 sim_data <- generateData(model_base, 
@@ -60,6 +72,12 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
                               Sigma =  sim_data$dgp[[jj]],
                               empirical = F
     )
+    res_sem <- sem(model = model_est_sem, 
+                   data = data_sim
+    )
+    paramees <- parameterEstimates(res_sem)
+    paramees2 <- paramees[paramees$lhs == "Y" & paramees$op == "~" & paramees$rhs == "X1",]
+  
     # Schätze mit den aus den oben gezogenen Daten die Parameter
     res <- csem(.data = data_sim, 
                 .model = model_est,
@@ -226,7 +244,12 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
                             Sim_run = sim_runs, 
                             simulation_run = jj, 
                             c_estimate = res$Estimates$Construct_VCV["X1", "X2"],
-                            dip_test_p_value = dip$p.value
+                            dip_test_p_value = dip$p.value,
+                            ML_estimate  = paramees2$est,
+                            ML_se = paramees2$se,
+                            ML_z = paramees2$z,
+                            ML_z_p_value = paramees2$pvalue,
+                            ML_z_test  = paramees2$pvalue < 0.05
     )
     csv_write$list_with_bootstrap <- list(res$Estimates$Estimates_resample$Estimates1$Path_estimates$Resampled[,'Y ~ X1'])
     csv_write
