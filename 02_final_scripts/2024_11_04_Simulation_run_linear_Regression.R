@@ -1,8 +1,3 @@
-install.packages(c("MASS", "cSEM", "lavaan", "foreach", "doParallel", "diptest", "devtools"))
-devtools::install_github("T-Schamberger/cSEM.DGP")
-
-
-
 library(MASS)
 library(cSEM)
 library(cSEM.DGP)
