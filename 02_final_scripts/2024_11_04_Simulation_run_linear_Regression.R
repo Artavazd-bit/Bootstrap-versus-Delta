@@ -1,3 +1,8 @@
+install.packages(c("MASS", "cSEM", "lavaan", "foreach", "doParallel", "diptest", "devtools"))
+devtools::install_github("T-Schamberger/cSEM.DGP")
+
+
+
 library(MASS)
 library(cSEM)
 library(cSEM.DGP)
@@ -242,4 +247,4 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
     csv_write
   } 
 closeAllConnections()
-saveRDS(o_table, file = "./Data/2024_11_06_linear_regression.rds")
+saveRDS(o_table, file = "./Data/2024_12_16_linear_regression.rds")
