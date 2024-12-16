@@ -6,6 +6,7 @@ library(foreach)
 library(doParallel)
 library(diptest)
 
+
 model_base <- "
 # Structural model
 Y ~ a*X1 + b*X2
@@ -45,6 +46,7 @@ X1 =~ x11 + x12 + x13
 X2 =~ x21 + x22 + x23
 Y =~ y1 + y2 + y3
 "
+# =~ spezifiziert eine latente Variable 
 
 Anzahl_path_estimate <- 2
 set.seed(123)
