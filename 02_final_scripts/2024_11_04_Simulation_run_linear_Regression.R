@@ -65,7 +65,7 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
     res_sem <- lavaan::sem(model = model_est_sem, 
                             data = data_sim
                             )
-    paramees <- lavaan:parameterEstimates(res_sem)
+    paramees <- lavaan::parameterEstimates(res_sem)
     paramees2 <- paramees[paramees$lhs == "Y" & paramees$op == "~" & paramees$rhs == "X1",]
     
     res <- csem(.data = data_sim, 
