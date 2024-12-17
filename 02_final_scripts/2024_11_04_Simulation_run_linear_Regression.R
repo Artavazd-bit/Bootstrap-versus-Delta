@@ -242,4 +242,5 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
     csv_write
   } 
 closeAllConnections()
+print(getwd())
 saveRDS(o_table, file = "Bootstrap-versus-Delta/01_Data/2024_12_16_linear_regression.rds")
