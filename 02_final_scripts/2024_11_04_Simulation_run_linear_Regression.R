@@ -62,7 +62,7 @@ o_table <- foreach(jj = 1: nrow(sim_data), .packages = c("cSEM", "MASS"), .combi
                               empirical = F
                               )
     # Schätze mit den aus den oben gezogenen Daten die Parameter
-    res_sem <- sem(model = model_est_sem, 
+    res_sem <- lavaan::sem(model = model_est_sem, 
                             data = data_sim
                             )
     paramees <- parameterEstimates(res_sem)
