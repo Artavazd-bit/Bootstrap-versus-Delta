@@ -25,6 +25,7 @@ y1 ~~ 0.2*y2 + 0.3*y3
 y2 ~~ 0.1*y3
 "
 
+
 model_est <- "
 # Structural model
 Y ~ X1 + X2
